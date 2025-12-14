@@ -1,6 +1,10 @@
 from email.message import Message
 
-from .email_parsers import AbstractEmailParser
+from .email_parsers import (
+    AbstractEmailParser,
+    DiscordVerificationEmailParser,
+    InstagramVerificationEmailParser,
+)
 
 
 class EmailParserFactory:
@@ -26,3 +30,5 @@ class EmailParserFactory:
 
 
 parser_factory = EmailParserFactory()
+parser_factory.register_parser("discord", DiscordVerificationEmailParser)
+parser_factory.register_parser("instagram", InstagramVerificationEmailParser)

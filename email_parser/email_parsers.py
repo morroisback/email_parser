@@ -4,8 +4,6 @@ from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 from email.message import Message
 
-from .parser_factory import parser_factory
-
 
 class AbstractEmailParser(ABC):
     def get_html_body(self, message: Message) -> str:
@@ -44,7 +42,3 @@ class InstagramVerificationEmailParser(AbstractEmailParser):
                 return code
 
         raise ValueError("Instagram verification code not found.")
-
-
-parser_factory.register_parser("discord", DiscordVerificationEmailParser)
-parser_factory.register_parser("instagram", InstagramVerificationEmailParser)

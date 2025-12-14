@@ -59,14 +59,14 @@ def load_oauth_emails(path: str, sep: str = ":") -> list[EmailAccount]:
 
 def main() -> None:
     emails = load_oauth_emails(".env/oauth_emails.txt", "|")
-    email_account = emails[4]
+    email_account = emails[3]
 
     proxies = load_proxy_ports_file(".env/proxy_ports.txt")
     proxy = proxies[0]
 
     try:
         with ImapClient(email_account, str(proxy)) as client:
-            find = "discord"
+            find = "instagram"
             message = client.get_latest_message(sender=find)
             if message:
                 print(f"{find} email found")

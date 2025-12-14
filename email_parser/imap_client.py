@@ -58,7 +58,7 @@ class ImapClient:
 
         if within_seconds:
             date_header = str(make_header(decode_header(message["Date"])))
-            date_header = re.sub(r'\s*\([^)]*\)', '', date_header)
+            date_header = re.sub(r"\s*\([^)]*\)", "", date_header)
             message_dt = datetime.strptime(date_header, "%a, %d %b %Y %H:%M:%S %z").astimezone(timezone.utc)
             now_utc = datetime.now(timezone.utc)
             if (now_utc - message_dt).total_seconds() > within_seconds:

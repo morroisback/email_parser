@@ -59,7 +59,7 @@ def load_oauth_emails(path: str, sep: str = ":") -> list[EmailAccount]:
 
 def main() -> None:
     emails = load_oauth_emails(".env/oauth_emails.txt", "|")
-    email_account = emails[3]
+    email_account = emails[4]
 
     proxies = load_proxy_ports_file(".env/proxy_ports.txt")
     proxy = proxies[0]

@@ -1,19 +1,28 @@
 from email.message import Message
-from .email_parsers import (
-    AbstractEmailParser,
-    InstagramVerificationEmailParser,
-    DiscordVerificationEmailParser,
-)
+
+from .email_parsers import AbstractEmailParser
 
 
 class EmailParserFactory:
-    @staticmethod
-    def get_parser(message: Message) -> AbstractEmailParser:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(EmailParserFactory, cls).__new__(cls)
+            cls._instance._parsers = {}
+        return cls._instance
+
+    def register_parser(self, keyword: str, parser_cls: AbstractEmailParser):
+        self._parsers[keyword] = parser_cls
+
+    def get_parser(self, message: Message) -> AbstractEmailParser:
         subject = message.get("subject", "").lower()
 
-        if "discord" in subject:
-            return DiscordVerificationEmailParser()
-        if "instagram" in subject:
-            return InstagramVerificationEmailParser()
+        for keyword, parser_cls in self._parsers.items():
+            if keyword in subject:
+                return parser_cls()
 
         raise ValueError("No suitable parser found for this email.")
+
+
+parser_factory = EmailParserFactory()

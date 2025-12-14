@@ -1,12 +1,14 @@
-import email.message
 import re
 
 from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
+from email.message import Message
+
+from .parser_factory import parser_factory
 
 
 class AbstractEmailParser(ABC):
-    def get_html_body(self, message: email.message.Message) -> str:
+    def get_html_body(self, message: Message) -> str:
         if message.is_multipart():
             for payload in message.get_payload():
                 if payload.get_content_type() == "text/html":
@@ -17,12 +19,12 @@ class AbstractEmailParser(ABC):
         raise ValueError("No HTML content found in email.")
 
     @abstractmethod
-    def parse(self, message: email.message.Message) -> str:
+    def parse(self, message: Message) -> str:
         raise NotImplementedError
 
 
 class DiscordVerificationEmailParser(AbstractEmailParser):
-    def parse(self, message: email.message.Message) -> str:
+    def parse(self, message: Message) -> str:
         body = self.get_html_body(message)
         url_match = re.search(r'<a\s+href="([^"]*?)".*?>\s*Verify Email\s*<\/a>', body)
         if url_match:
@@ -32,7 +34,7 @@ class DiscordVerificationEmailParser(AbstractEmailParser):
 
 
 class InstagramVerificationEmailParser(AbstractEmailParser):
-    def parse(self, message: email.message.Message) -> str:
+    def parse(self, message: Message) -> str:
         body = self.get_html_body(message)
         soup = BeautifulSoup(body, "lxml")
         code_element = soup.find("td", style=lambda x: x and "font-size:32px" in x)
@@ -42,3 +44,7 @@ class InstagramVerificationEmailParser(AbstractEmailParser):
                 return code
 
         raise ValueError("Instagram verification code not found.")
+
+
+parser_factory.register_parser("discord", DiscordVerificationEmailParser)
+parser_factory.register_parser("instagram", InstagramVerificationEmailParser)

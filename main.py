@@ -2,7 +2,7 @@ import re
 
 from dataclasses import dataclass
 
-from email_parser import ImapClient, EmailAccount, EmailParserFactory
+from email_parser import ImapClient, EmailAccount, parser_factory
 from email_parser import utils
 
 
@@ -72,7 +72,7 @@ def main() -> None:
                 print(f"{find} email found")
                 utils.save_message(message, f".env/{find}_message.eml")
                 utils.message_to_html(message, f".env/{find}.html")
-                parser = EmailParserFactory.get_parser(message)
+                parser = parser_factory.get_parser(message)
                 print(parser.parse(message))
                 return parser.parse(message)
             else:

@@ -1,6 +1,7 @@
-from abc import ABC, abstractmethod
 import imaplib
 import requests
+
+from abc import ABC, abstractmethod
 
 from .models import EmailAccount
 

@@ -39,8 +39,8 @@ class ImapClient:
             self.mail.logout()
             self.is_logged_in = False
 
+    @staticmethod
     def check_message_criteria(
-        self,
         message: Message,
         sender: str | None,
         subject: str | None,

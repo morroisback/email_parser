@@ -1,12 +1,10 @@
 import imaplib
 import email
-import pickle
 import re
 
 from datetime import datetime, timezone
 from email.message import Message
 from email.header import decode_header, make_header
-from pathlib import Path
 
 from .models import EmailAccount
 from .auth import AuthStrategy, SimpleAuthStrategy, OAuthStrategy
@@ -164,85 +162,3 @@ class ImapClient:
             for mail_id in mail_ids:
                 self.mail.store(mail_id, "+FLAGS", "\\Deleted")
             self.mail.expunge()
-
-    @staticmethod
-    def save_message(message: Message, file_path: str | None = None) -> str:
-        if file_path is None:
-            subject = message.get("Subject", "message")
-            file_path = f"email_{subject[:30]}.eml"
-
-        file_path = Path(file_path)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if str(file_path).endswith(".pkl"):
-            with open(file_path, "wb") as f:
-                pickle.dump(message, f)
-        else:
-            with open(file_path, "wb") as f:
-                f.write(message.as_bytes())
-
-        return str(file_path)
-
-    @staticmethod
-    def load_message(file_path: str) -> Message:
-        file_path = Path(file_path)
-
-        if not file_path.exists():
-            raise FileNotFoundError(f"Файл {file_path} не найден.")
-
-        if str(file_path).endswith(".pkl"):
-            with open(file_path, "rb") as f:
-                return pickle.load(f)
-        else:
-            with open(file_path, "rb") as f:
-                return email.message_from_bytes(f.read())
-
-    @staticmethod
-    def message_to_html(message: Message, file_path: str | None = None) -> str:
-        if file_path is None:
-            subject = message.get("Subject", "message")
-            file_path = f"email_{subject[:30]}.html"
-
-        file_path = Path(file_path)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        html_content = None
-
-        if message.is_multipart():
-            for payload in message.get_payload():
-                if payload.get_content_type() == "text/html":
-                    html_content = payload.get_payload(decode=True).decode("utf-8")
-                    break
-        else:
-            if message.get_content_type() == "text/html":
-                html_content = message.get_payload(decode=True).decode("utf-8")
-
-        if html_content is None:
-            text_content = ""
-            if message.is_multipart():
-                for payload in message.get_payload():
-                    if payload.get_content_type() == "text/plain":
-                        text_content = payload.get_payload(decode=True).decode("utf-8")
-                        break
-            else:
-                text_content = message.get_payload(decode=True).decode("utf-8")
-
-            html_content = f"""
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>{message.get("Subject", "Email")}</title>
-            </head>
-            <body>
-                <h2>От: {message.get("From")}</h2>
-                <h3>Тема: {message.get("Subject")}</h3>
-                <hr>
-                <pre>{text_content}</pre>
-            </body>
-            </html>
-            """
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        return str(file_path)

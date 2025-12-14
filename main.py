@@ -3,6 +3,7 @@ import re
 from dataclasses import dataclass
 
 from email_parser import ImapClient, EmailAccount, EmailParserFactory
+from email_parser import utils
 
 
 @dataclass
@@ -65,12 +66,12 @@ def main() -> None:
 
     try:
         with ImapClient(email_account, str(proxy)) as client:
-            find = "instagram"
-            message = client.get_latest_message(sender=find, within_seconds=3600)
+            find = "discord"
+            message = client.get_latest_message(sender=find)
             if message:
                 print(f"{find} email found")
-                client.save_message(message, f".env/{find}_message.eml")
-                client.message_to_html(message, f".env/{find}.html")
+                utils.save_message(message, f".env/{find}_message.eml")
+                utils.message_to_html(message, f".env/{find}.html")
                 parser = EmailParserFactory.get_parser(message)
                 print(parser.parse(message))
                 return parser.parse(message)

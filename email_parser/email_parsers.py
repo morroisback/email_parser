@@ -6,6 +6,16 @@ from bs4 import BeautifulSoup
 
 
 class AbstractEmailParser(ABC):
+    def _get_html_body(self, message: email.message.Message) -> str:
+        if message.is_multipart():
+            for payload in message.get_payload():
+                if payload.get_content_type() == "text/html":
+                    return payload.get_payload(decode=True).decode("utf-8")
+        else:
+            if message.get_content_type() == "text/html":
+                return message.get_payload(decode=True).decode("utf-8")
+        raise ValueError("No HTML content found in email.")
+
     @abstractmethod
     def parse(self, message: email.message.Message) -> str:
         raise NotImplementedError
@@ -13,18 +23,7 @@ class AbstractEmailParser(ABC):
 
 class DiscordVerificationEmailParser(AbstractEmailParser):
     def parse(self, message: email.message.Message) -> str:
-        body = None
-        if message.is_multipart():
-            for payload in message.get_payload():
-                if payload.get_content_type() == "text/html":
-                    body = payload.get_payload(decode=True).decode("utf-8")
-                    break
-        else:
-            body = message.get_payload(decode=True).decode("utf-8")
-
-        if not body:
-            raise ValueError("No HTML content found in email.")
-
+        body = self._get_html_body(message)
         url_match = re.search(r'<a\s+href="([^"]*?)".*?>\s*Verify Email\s*<\/a>', body)
         if url_match:
             return url_match.group(1)
@@ -34,18 +33,7 @@ class DiscordVerificationEmailParser(AbstractEmailParser):
 
 class InstagramVerificationEmailParser(AbstractEmailParser):
     def parse(self, message: email.message.Message) -> str:
-        body = None
-        if message.is_multipart():
-            for payload in message.get_payload():
-                if payload.get_content_type() == "text/html":
-                    body = payload.get_payload(decode=True).decode("utf-8")
-                    break
-        else:
-            body = message.get_payload(decode=True).decode("utf-8")
-
-        if not body:
-            raise ValueError("No HTML content found in email.")
-
+        body = self._get_html_body(message)
         soup = BeautifulSoup(body, "lxml")
         code_element = soup.find("td", style=lambda x: x and "font-size:32px" in x)
         if code_element:
